@@ -2,6 +2,7 @@
 #define INCIDENT_H
 
 #include "IncidentState.h"
+#include <map>
 #include <memory>
 #include <string>
 
@@ -17,6 +18,26 @@ class ControlRoom;
 class Incident {
 public:
   enum class Severity { Low = 1, Medium = 2, High = 3, Critical = 4 };
+
+  const std::map<std::string, std::string> unitToRespond = {
+      // medical
+      {"medical", "Medical"},
+      {"assault", "Medical"},
+      {"labaccident", "Medical"},
+
+      // security
+      {"theft", "Security"},
+      {"intruder", "Security"},
+      {"evacuation", "Security"},
+      {"bombthreat", "Security"},
+
+      // maintenance
+      {"facility", "Maintenance"},
+      {"fire", "Maintenance"},
+      {"gasleak", "Maintenance"},
+      {"poweroutage", "Maintenance"},
+      {"flooding", "Maintenance"},
+  };
 
   Incident(std::string id, std::string location, std::string description,
            std::string type, Severity severity, ControlRoom *room);
@@ -41,17 +62,18 @@ public:
   void setState(std::unique_ptr<IncidentState> newState);
 
   // --- accessors ---
-  const std::string &getId() const { return id; }
-  const std::string &getLocation() const { return location; }
-  const std::string &getDescription() const { return description; }
-  const std::string &getType() const { return type; }
-  Severity getSeverity() const { return severity; }
+  const std::string &getId() const;
+  const std::string &getLocation() const;
+  const std::string &getDescription() const;
+  const std::string &getType() const;
+  Severity getSeverity() const;
+  int getSeverityNumber() const;
 
   /// @brief Current state's name, for logging and the CLI listing.
   std::string getStateName() const;
 
-  const std::string &getRequiredUnitType() const { return requiredUnitType; }
-  ControlRoom *getControlRoom() const { return controlRoom; }
+  const std::string &getRequiredUnitType() const;
+  ControlRoom *getControlRoom() const;
 
 private:
   std::string id;
