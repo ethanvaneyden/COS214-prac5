@@ -10,7 +10,6 @@
  */
 class InvalidStateTransitionException : public std::runtime_error {
 private:
-  std::string message;
 
 public:
   /**

@@ -46,7 +46,8 @@ public:
   /// @brief Free-form broadcast to all units.
   void emergencyAlert(const std::string &message);
 
-  /// @brief Create via factory for @p type and register. @throws std::invalid_argument.
+  /// @brief Create via factory for @p type and register. @throws
+  /// std::invalid_argument.
   void createUnit(const std::string &type, const std::string &id);
 
   /// @brief Non-owning lookup; nullptr if not found.
@@ -58,6 +59,9 @@ public:
   /// @brief Colleague requests area be secured before entering.
   void entryRequested(const std::string &location,
                       const std::string &requesterId);
+
+  /// @brief Prints all registered units out
+  void listUnits() const;
 };
 
 #endif
