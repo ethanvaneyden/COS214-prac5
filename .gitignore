@@ -1,0 +1,63 @@
+# ---- Build artefacts ----
+*.o
+*.obj
+*.exe
+*.out
+*.app
+CampusGuard
+campusguard
+build/
+bin/
+obj/
+dist/
+
+# ---- Dependency / generated ----
+*.d
+*.dSYM/
+
+# ---- Makefile leftovers ----
+*.deps
+.deps/
+
+# ---- Editor / IDE ----
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.code-workspace
+.cproject
+.project
+.settings/
+
+# ---- OS junk ----
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- Docker / Compose ----
+*.pid
+*.seed
+.env
+.env.*
+!.env.example
+
+# ---- Valgrind / GDB ----
+valgrind.log
+vgcore.*
+core
+core.*
+gdb.txt
+
+# ---- Logs / test output ----
+*.log
+logs/
+test-results/
+coverage/
+*.gcda
+*.gcno
+*.gcov
+
+# ---- Compiled object dirs some Makefiles use ----
+src/**/*.o
+src/**/*.d
