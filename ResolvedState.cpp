@@ -2,7 +2,6 @@
 #include "Incident.h"
 #include "IncidentState.h"
 #include "InvalidStateTransitionException.h"
-#include "ResolvedState.h"
 
 using namespace std;
 
@@ -24,4 +23,4 @@ void ResolvedState::handleCancellation(Incident *incident) {
 }
 
 /// Human-readable name used in logs and the CLI listing.
-string ResolvedState::getStateName() const { return "Dispatched"; }
+string ResolvedState::getStateName() const { return "Resolved"; }

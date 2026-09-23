@@ -46,6 +46,7 @@ public:
   const std::string &getDescription() const { return description; }
   const std::string &getType() const { return type; }
   Severity getSeverity() const { return severity; }
+  int getSeverityNumber() const {return static_cast<int>(severity);}
 
   /// @brief Current state's name, for logging and the CLI listing.
   std::string getStateName() const;
