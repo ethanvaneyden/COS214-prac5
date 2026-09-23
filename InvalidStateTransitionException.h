@@ -6,19 +6,18 @@
 
 /**
  * @brief This class is an exception when you have an invalid state transition
- * 
+ *
  */
-class InvalidStateTransitionException {
-    private:
-    std::string message;
+class InvalidStateTransitionException : public std::runtime_error {
+private:
 
-    public:
-    /**
-     * @brief Construct a new Invalid State Transition Exception object
-     * 
-     * @param message 
-     */
-    InvalidStateTransitionException(const std::string& message);
+public:
+  /**
+   * @brief Construct a new Invalid State Transition Exception object
+   *
+   * @param message
+   */
+  InvalidStateTransitionException(const std::string &message);
 };
 
 #endif
