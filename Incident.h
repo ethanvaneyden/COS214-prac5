@@ -5,71 +5,63 @@
 #include <memory>
 #include <string>
 
+class ControlRoom;
+
 /**
- * @brief Represents a reported incident
+ * @brief Context for the State pattern and Receiver for Command.
  *
+ * The Incident knows which unit type it requires (derived once at
+ * construction from its type) and holds a non-owning pointer to the
+ * ControlRoom so states can notify the mediator after a transition.
  */
 class Incident {
+public:
+  enum class Severity { Low = 1, Medium = 2, High = 3, Critical = 4 };
+
+  Incident(std::string id, std::string location, std::string description,
+           std::string type, Severity severity, ControlRoom *room);
+
+  ~Incident() = default;
+
+  Incident(const Incident &) = delete;
+  Incident &operator=(const Incident &) = delete;
+
+  // --- transitions (delegated to the current state) ---
+
+  /// @brief Dispatch the required unit. Legal from Reported / Dispatched.
+  void escalate();
+
+  /// @brief Mark resolved. Legal only from Dispatched.
+  void resolve();
+
+  /// @brief Cancel before resolution. Legal from Reported / Dispatched.
+  void cancel();
+
+  /// @brief Replace the current state. Ownership transfers to the Incident.
+  void setState(std::unique_ptr<IncidentState> newState);
+
+  // --- accessors ---
+  const std::string &getId() const { return id; }
+  const std::string &getLocation() const { return location; }
+  const std::string &getDescription() const { return description; }
+  const std::string &getType() const { return type; }
+  Severity getSeverity() const { return severity; }
+
+  /// @brief Current state's name, for logging and the CLI listing.
+  std::string getStateName() const;
+
+  const std::string &getRequiredUnitType() const { return requiredUnitType; }
+  ControlRoom *getControlRoom() const { return controlRoom; }
+
 private:
   std::string id;
   std::string location;
   std::string description;
   std::string type;
+  Severity severity;
+  std::string requiredUnitType;
   std::unique_ptr<IncidentState> state;
-
-public:
-  /**
-   * @brief Construct a new Incident object
-   *
-   * @param id
-   * @param location
-   * @param description
-   * @param type
-   */
-  Incident(std::string id, std::string location, std::string description,
-           std::string type);
-  /**
-   * @brief Set the state
-   *
-   * @param newState
-   */
-  void setState(std::unique_ptr<IncidentState> newState);
-  /**
-   * @brief Delegates the escalatation to the current state
-   *
-   */
-  void escalate();
-
-  /**
-   * @brief Get the ID
-   *
-   * @return std::string
-   */
-  std::string getId() const;
-  /**
-   * @brief Get the Location
-   *
-   * @return std::string
-   */
-  std::string getLocation() const;
-  /**
-   * @brief Get the Description
-   *
-   * @return std::string
-   */
-  std::string getDescription() const;
-  /**
-   * @brief Get the Type
-   *
-   * @return std::string
-   */
-  std::string getType() const;
-  /**
-   * @brief Get the State Name
-   *
-   * @return std::string
-   */
-  std::string getStateName() const;
+  ControlRoom *controlRoom;
 };
 
 #endif

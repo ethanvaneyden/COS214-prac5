@@ -8,7 +8,7 @@
  * @brief This class is an exception when you have an invalid state transition
  *
  */
-class InvalidStateTransitionException {
+class InvalidStateTransitionException : public std::runtime_error {
 private:
   std::string message;
 

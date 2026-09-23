@@ -6,28 +6,26 @@
 class Incident;
 
 /**
- * @brief The interface for states
+ * @brief State interface for the Incident lifecycle.
  *
+ * Each concrete state decides which transitions are legal. Illegal
+ * transitions throw InvalidStateTransitionException.
  */
 class IncidentState {
 public:
-  /**
-   * @brief Destroy the Incident State object
-   *
-   */
-  virtual ~IncidentState() = default;
-  /**P
-   * @brief Decides how to handle the escalation of the incident
-   *
-   * @param context
-   */
-  virtual void handleEscalation(Incident *context) = 0;
-  /**
-   * @brief Get the name of the state
-   *
-   * @return std::string
-   */
-  virtual std::string getStateName();
+    virtual ~IncidentState() = default;
+
+    /// System dispatches the required unit for this incident.
+    virtual void handleEscalation(Incident* context) = 0;
+
+    /// Operator marks the incident resolved.
+    virtual void handleResolution(Incident* context) = 0;
+
+    /// Operator cancels the incident.
+    virtual void handleCancellation(Incident* context) = 0;
+
+    /// Human-readable name used in logs and the CLI listing.
+    virtual std::string getStateName() const = 0;
 };
 
 #endif
