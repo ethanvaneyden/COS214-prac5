@@ -1,13 +1,13 @@
-#ifndef DISPATCHEDSTATE_H
-#define DISPATCHEDSTATE_H
+#ifndef RESOLVEDSTATE_H
+#define RESOLVEDSTATE_H
 #include "IncidentState.h"
 
-class DispatchedState : public IncidentState {
+class ResolvedState : public IncidentState {
 
 public:
-  virtual ~DispatchedState() = default;
+  virtual ~ResolvedState() = default;
 
-  DispatchedState() = default;
+  ResolvedState() = default;
 
   /// System dispatches the required unit for this incident.
   void handleEscalation(Incident *context);

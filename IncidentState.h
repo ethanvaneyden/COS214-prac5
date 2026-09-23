@@ -13,19 +13,19 @@ class Incident;
  */
 class IncidentState {
 public:
-    virtual ~IncidentState() = default;
+  virtual ~IncidentState() = default;
 
-    /// System dispatches the required unit for this incident.
-    virtual void handleEscalation(Incident* context) = 0;
+  /// System dispatches the required unit for this incident.
+  virtual void handleEscalation(Incident *context) = 0;
 
-    /// Operator marks the incident resolved.
-    virtual void handleResolution(Incident* context) = 0;
+  /// Operator marks the incident resolved.
+  virtual void handleResolution(Incident *context) = 0;
 
-    /// Operator cancels the incident.
-    virtual void handleCancellation(Incident* context) = 0;
+  /// Operator cancels the incident.
+  virtual void handleCancellation(Incident *context) = 0;
 
-    /// Human-readable name used in logs and the CLI listing.
-    virtual std::string getStateName() const = 0;
+  /// Human-readable name used in logs and the CLI listing.
+  virtual std::string getStateName() const = 0;
 };
 
 #endif
