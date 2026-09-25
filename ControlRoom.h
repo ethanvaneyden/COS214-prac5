@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <map>
+#include <unordered_map>
 class ResponseUnit;
 class ResponseUnitFactory;
 
@@ -22,7 +22,7 @@ class ControlRoom
 
 private:
   std::vector<std::unique_ptr<ResponseUnit>> registeredUnits;
-  std::map<std::string, std::unique_ptr<ResponseUnitFactory>> factories;
+  std::unordered_map<std::string, std::unique_ptr<ResponseUnitFactory>> factories;
 
 public:
   virtual ~ControlRoom() = default;
