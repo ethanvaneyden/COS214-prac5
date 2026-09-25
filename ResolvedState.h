@@ -4,10 +4,11 @@
 
 /**
  * @brief Represents a resolved incident state
- * 
+ *
  */
 
-class ResolvedState : public IncidentState {
+class ResolvedState : public IncidentState
+{
 
 public:
   virtual ~ResolvedState() = default;

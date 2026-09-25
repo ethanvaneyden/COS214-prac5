@@ -15,9 +15,16 @@ class ControlRoom;
  * construction from its type) and holds a non-owning pointer to the
  * ControlRoom so states can notify the mediator after a transition.
  */
-class Incident {
+class Incident
+{
 public:
-  enum class Severity { Low = 1, Medium = 2, High = 3, Critical = 4 };
+  enum class Severity
+  {
+    Low = 1,
+    Medium = 2,
+    High = 3,
+    Critical = 4
+  };
 
   const std::map<std::string, std::string> unitToRespond = {
       // medical

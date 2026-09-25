@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <map>
 class ResponseUnit;
 class ResponseUnitFactory;
 
@@ -16,23 +17,22 @@ class ResponseUnitFactory;
  * transitions (incidentReported, incidentDispatched, ...) and colleague
  * discoveries (hazardDetected, entryRequested, areaSecured).
  */
-class ControlRoom {
+class ControlRoom
+{
 
 private:
   std::vector<std::unique_ptr<ResponseUnit>> registeredUnits;
-  std::vector<std::unique_ptr<ResponseUnitFactory>> factories;
+  std::map<std::string, std::unique_ptr<ResponseUnitFactory>> factories;
 
 public:
   virtual ~ControlRoom() = default;
-  ControlRoom() = default;
-
+  ControlRoom();
+  
   /// @brief New incident registered. @param severity 1-4.
-  void incidentReported(const std::string &id, const std::string &location,
-                        int severity);
+  void incidentReported(const std::string &id, const std::string &location, int severity);
 
   /// @brief Unit dispatched. Cascades to areaSecured() at severity >= 4.
-  void incidentDispatched(const std::string &id, const std::string &location,
-                          const std::string &unitType, int severity);
+  void incidentDispatched(const std::string &id, const std::string &location, const std::string &unitType, int severity);
 
   /// @brief Incident resolved by @p unitType.
   void incidentResolved(const std::string &id, const std::string &unitType);
@@ -41,7 +41,7 @@ public:
   void incidentCancelled(const std::string &id);
 
   /// @brief Area secured; notifies waiting units (e.g. Medical entering).
-  void areaSecured(const std::string &areaId);
+  void areaSecured(const std::string &location);
 
   /// @brief Free-form broadcast to all units.
   void emergencyAlert(const std::string &message);
@@ -57,8 +57,7 @@ public:
   void hazardDetected(const std::string &location, const std::string &hazard);
 
   /// @brief Colleague requests area be secured before entering.
-  void entryRequested(const std::string &location,
-                      const std::string &requesterId);
+  void entryRequested(const std::string &location, const std::string &requesterId);
 
   /// @brief Prints all registered units out
   void listUnits() const;

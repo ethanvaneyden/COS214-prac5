@@ -19,7 +19,8 @@ class AlarmSystem;
  * registry so Incidents never notify a dead mediator, and the invoker
  * (which holds Commands referencing Incidents) must be destroyed first.
  */
-class OperationsDesk {
+class OperationsDesk
+{
 public:
   OperationsDesk();
   ~OperationsDesk();

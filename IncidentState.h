@@ -11,7 +11,8 @@ class Incident;
  * Each concrete state decides which transitions are legal. Illegal
  * transitions throw InvalidStateTransitionException.
  */
-class IncidentState {
+class IncidentState
+{
 public:
   virtual ~IncidentState() = default;
 

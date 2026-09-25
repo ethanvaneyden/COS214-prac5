@@ -2,11 +2,12 @@
 #define DISPATCHEDSTATE_H
 #include "IncidentState.h"
 
-class DispatchedState : public IncidentState {
-/**
- * @brief Represents an incidents where teams are dispatched but not yet marked as resolved by the operator
- * 
- */
+class DispatchedState : public IncidentState
+{
+  /**
+   * @brief Represents an incidents where teams are dispatched but not yet marked as resolved by the operator
+   *
+   */
 public:
   virtual ~DispatchedState() = default;
 

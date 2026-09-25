@@ -4,9 +4,10 @@
 
 /**
  * @brief Represents a reported but still unresolved incident state
- * 
+ *
  */
-class ReportedState : public IncidentState {
+class ReportedState : public IncidentState
+{
 
 public:
   virtual ~ReportedState() = default;

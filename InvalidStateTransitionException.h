@@ -8,9 +8,9 @@
  * @brief This class is an exception when you have an invalid state transition
  *
  */
-class InvalidStateTransitionException : public std::runtime_error {
+class InvalidStateTransitionException : public std::runtime_error
+{
 private:
-
 public:
   /**
    * @brief Construct a new Invalid State Transition Exception object
