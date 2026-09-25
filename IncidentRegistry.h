@@ -17,14 +17,15 @@ class IncidentRegistry
 
 private:
     std::map<std::string, std::unique_ptr<Incident>> registry;
+    int incidentNumber;
 
 public:
     IncidentRegistry();
     ~IncidentRegistry() = default;
 
     Incident* createIncident(std::string location, std::string description, std::string type, int severity, ControlRoom *room);
-    void deleteIncident(std::string id);
-    void printIncidents();
+    Incident* find(std::string id);
+    void printIncidents() const;
 };
 
 #endif
