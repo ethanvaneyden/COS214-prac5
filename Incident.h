@@ -46,8 +46,7 @@ public:
       {"flooding", "Maintenance"},
   };
 
-  Incident(std::string id, std::string location, std::string description,
-           std::string type, Severity severity, ControlRoom *room);
+  Incident(std::string id, std::string location, std::string description, std::string type, Severity severity, ControlRoom *room);
 
   ~Incident() = default;
 
