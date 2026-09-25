@@ -4,9 +4,10 @@
 
 /**
  * @brief Represents an incident that was cancelled by the operator before being resolved
- * 
+ *
  */
-class CancelledState : public IncidentState {
+class CancelledState : public IncidentState
+{
 
 public:
   virtual ~CancelledState() = default;

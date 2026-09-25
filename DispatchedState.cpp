@@ -9,25 +9,30 @@
 
 using namespace std;
 
-void DispatchedState::handleEscalation(Incident *incident) {
+void DispatchedState::handleEscalation(Incident *incident)
+{
   throw InvalidStateTransitionException(
       "Can't escalate a dispatched incident!");
 }
 
 /// Operator marks the incident resolved.
-void DispatchedState::handleResolution(Incident *incident) {
+void DispatchedState::handleResolution(Incident *incident)
+{
   incident->setState(unique_ptr<IncidentState>(new ResolvedState()));
 
-  if(auto* room = incident->getControlRoom()) {
+  if (auto *room = incident->getControlRoom())
+  {
     room->incidentResolved(incident->getId(), incident->getRequiredUnitType());
   }
 }
 
 /// Operator cancels the incident.
-void DispatchedState::handleCancellation(Incident *incident) {
+void DispatchedState::handleCancellation(Incident *incident)
+{
   incident->setState(unique_ptr<IncidentState>(new CancelledState()));
 
-    if(auto* room = incident->getControlRoom()) {
+  if (auto *room = incident->getControlRoom())
+  {
     room->incidentCancelled(incident->getId());
   }
 }
