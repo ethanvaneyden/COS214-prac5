@@ -3,6 +3,10 @@
 #include "CancelCommand.h"
 #include "ResolveCommand.h"
 #include "InvalidStateTransitionException.h"
+#include "MedicalUnitFactory.h"
+#include "SecurityUnitFactory.h"
+#include "CommunicationsUnitFactory.h"
+#include "MaintenanceUnitFactory.h"
 #include <iostream>
 
 using namespace std;
@@ -14,14 +18,18 @@ OperationsDesk::OperationsDesk()
     invoker = unique_ptr<CommandInvoker>(new CommandInvoker());
     alarm = unique_ptr<AlarmSystem>(new LegacyAlarmAdapter());
 
-    //Todo add factory registration
+    controlRoom->registerFactory("medical", unique_ptr<ResponseUnitFactory>(new MedicalUnitFactory()));
+    controlRoom->registerFactory("maintenance", unique_ptr<ResponseUnitFactory>(new MaintenanceUnitFactory()));
+    controlRoom->registerFactory("security", unique_ptr<ResponseUnitFactory>(new SecurityUnitFactory()));
+    controlRoom->registerFactory("comms", unique_ptr<ResponseUnitFactory>(new CommunicationsUnitFactory(alarm.get())));
 }
 
 string OperationsDesk::reportIncident(const string &type, const string &location, const string &description, int severity)
 {
     Incident *newIncident = registry->createIncident(location, description, type, severity, controlRoom.get());
 
-    if(!newIncident) {
+    if (!newIncident)
+    {
         cout << "[Desk] Incident not registered (invalid severity)!\n";
         return "";
     }

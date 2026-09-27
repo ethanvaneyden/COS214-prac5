@@ -9,46 +9,51 @@ class ResponseUnit
 {
 protected:
     std::string id;
-    ControlRoom* controlRoom;
+    ControlRoom *controlRoom;
 
 public:
-    ResponseUnit(const std::string& id);
+    ResponseUnit(const std::string &id);
 
     virtual ~ResponseUnit() = default;
 
     std::string getId() const;
 
-    void setControlRoom(ControlRoom* room);
+    void setControlRoom(ControlRoom *room);
 
     virtual std::string getUnitType() const = 0;
 
-    virtual void onIncidentReported(const std::string& incidentId, const std::string& location, int severity)
+    virtual void onIncidentReported(const std::string &incidentId, const std::string &location, int severity)
     {
     }
 
-    virtual void onIncidentDispatched(const std::string& incidentId, const std::string& location, const std::string& unitType, int severity)
+    virtual void onIncidentDispatched(const std::string &incidentId, const std::string &location, const std::string &unitType, int severity)
     {
     }
 
-    virtual void onIncidentResolved(const std::string& incidentId, const std::string& unitType)
+    virtual void onIncidentResolved(const std::string &incidentId, const std::string &unitType)
     {
     }
 
-    virtual void onIncidentCancelled(const std::string& incidentId)
+    virtual void onIncidentCancelled(const std::string &incidentId)
     {
     }
 
-    virtual void onAreaSecured(const std::string& location)
+    virtual void onAreaSecured(const std::string &location)
     {
     }
 
-    virtual void onHazardDetected(const std::string& location, const std::string& hazard)
+    virtual void onHazardDetected(const std::string &location, const std::string &hazard)
     {
     }
 
-    virtual void enterArea(const std::string& location)
+    virtual void enterArea(const std::string &location)
     {
     }
+
+    virtual void onEntryRequested(const std::string &location,
+                                  const std::string &requesterId) {}
+
+    virtual void onEmergencyAlert(const std::string &message) {}
 };
 
 #endif

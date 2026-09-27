@@ -1,13 +1,10 @@
 
 #include "ControlRoom.h"
+#include "ResponseUnit.h"
+#include "ResponseUnitFactory.h"
 #include <iostream>
 
 using namespace std;
-
-ControlRoom::ControlRoom()
-{
-    // Todo: Implement
-}
 
 void ControlRoom::incidentReported(const string &id, const string &location, int severity)
 {
@@ -22,6 +19,11 @@ void ControlRoom::incidentDispatched(const string &id, const string &location, c
     for (const auto &unit : registeredUnits)
     {
         unit->onIncidentDispatched(id, location, unitType, severity);
+    }
+
+    if (severity >= 4)
+    {
+        areaSecured(location);
     }
 }
 
@@ -49,8 +51,12 @@ void ControlRoom::areaSecured(const string &location)
     }
 }
 
-void emergencyAlert(const string &message)
+void ControlRoom::emergencyAlert(const string &message)
 {
+    for (const auto &unit : registeredUnits)
+    {
+        unit->onEmergencyAlert(message);
+    }
 }
 
 void ControlRoom::createUnit(const string &type, const string &id)
@@ -59,7 +65,10 @@ void ControlRoom::createUnit(const string &type, const string &id)
     if (it != factories.end())
     {
         auto &factory = it->second;
-        factory->createUnit(type, id);
+        unique_ptr<ResponseUnit> unit = factory->createUnit(id);
+        unit->setControlRoom(this);
+        registeredUnits.push_back(move(unit));
+        cout << "[Control Room] registered " << unit->getId() << "\n";
     }
     else
     {
@@ -67,8 +76,16 @@ void ControlRoom::createUnit(const string &type, const string &id)
     }
 }
 
-ResponseUnit *findUnit(const string &unitId) const
+ResponseUnit *ControlRoom::findUnit(const string &unitId) const
 {
+    for (const auto &unit : registeredUnits)
+    {
+        if (unit->getId() == unitId)
+        {
+            return unit.get();
+        }
+    }
+    return nullptr;
 }
 
 void ControlRoom::hazardDetected(const string &location, const string &hazard)
@@ -81,17 +98,32 @@ void ControlRoom::hazardDetected(const string &location, const string &hazard)
 
 void ControlRoom::entryRequested(const string &location, const string &requesterId)
 {
-    for(const auto &unit : registeredUnits) {
-        if(unit->getId() == requesterId) {
-            unit->enterArea(location);
+    for (const auto &unit : registeredUnits)
+    {
+        if (unit->getId() == requesterId)
+        {
+            unit->onEntryRequested(location, requesterId);
         }
     }
 }
 
-void ControlRoom::listUnits() const {
-    //TODO: Implement method
+void ControlRoom::listUnits() const
+{
+    if (registeredUnits.empty())
+    {
+        cout << "[Desk] no units!\n";
+        return;
+    }
+
+    for (const auto &unit : registeredUnits)
+    {
+
+        cout << "  " << unit->getId()
+             << " (" << unit->getUnitType() << ")\n";
+    }
 }
 
-void ControlRoom::registerFactory(string type, unique_ptr<ResponseUnitFactory> factory) {
+void ControlRoom::registerFactory(string type, unique_ptr<ResponseUnitFactory> factory)
+{
     factories.emplace(type, move(factory));
 }
