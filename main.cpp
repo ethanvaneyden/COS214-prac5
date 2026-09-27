@@ -1,4 +1,5 @@
 #include <iostream>
+#include <limits>
 #include "OperationsDesk.h"
 
 using namespace std;
@@ -45,7 +46,42 @@ void printMenu()
          << "  0. Exit\n> ";
 }
 
-void startMenu()
+int readInt(const string &prompt)
+{
+    cout << prompt;
+    int value;
+
+    if (!(cin >> value))
+    {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        return -1;
+    }
+
+    cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
+    return value;
+}
+
+string readLine(const string &prompt)
+{
+    cout << prompt;
+    string line;
+    getline(cin, line);
+    return line;
+}
+
+void pause(const string &note = "") {
+    if(note.empty()) {
+        cout << "Press enter to continue\n";
+    }
+    else {
+        cout << "[Press enter] " << note << "\n";
+    }
+    string temp;
+    getline(cin, temp);
+}
+
+    void startMenu()
 {
     cout << "\n"
          << "==============================================\n"
