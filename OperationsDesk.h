@@ -1,6 +1,11 @@
 #ifndef OPERATIONS_DESK_H
 #define OPERATIONS_DESK_H
 
+#include "ControlRoom.h"
+#include "IncidentRegistry.h"
+#include "CommandInvoker.h"
+#include "AlarmSystem.h"
+#include "LegacyAlarmAdapter.h"
 #include <memory>
 #include <string>
 
@@ -23,7 +28,7 @@ class OperationsDesk
 {
 public:
   OperationsDesk();
-  ~OperationsDesk();
+  ~OperationsDesk() = default;
 
   // --- operator workflows ---
 

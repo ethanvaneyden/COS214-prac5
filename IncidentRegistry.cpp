@@ -1,6 +1,7 @@
 #include "IncidentRegistry.h"
 #include <iostream>
 #include <iomanip>
+#include <sstream>
 
 using namespace std;
 
