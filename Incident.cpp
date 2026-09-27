@@ -6,14 +6,10 @@
 
 using namespace std;
 
-Incident::Incident(string id, string location, string description, string type,
-                   Severity severity, ControlRoom *room)
-    : id(id), location(location), description(description), type(type),
-      severity(severity), requiredUnitType(), state(new ReportedState()),
-      controlRoom(room)
+Incident::Incident(string id, string location, string description, string type, Severity severity, ControlRoom *room)
+    : id(id), location(location), description(description), type(type), severity(severity), requiredUnitType(), state(new ReportedState()), controlRoom(room)
 {
 
-  state = unique_ptr<IncidentState>(new ReportedState());
   auto it = unitToRespond.find(type);
   if (it != unitToRespond.end())
   {

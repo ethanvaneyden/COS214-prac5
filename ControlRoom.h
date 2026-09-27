@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-class ResponseUnit;
-class ResponseUnitFactory;
+#include "ResponseUnit.h"
+#include "ResponseUnitFactory.h"
 
 /**
  * @brief Mediator. Coordinates ResponseUnits without them knowing about
@@ -26,7 +26,7 @@ private:
 
 public:
   virtual ~ControlRoom() = default;
-  ControlRoom();
+  ControlRoom() = default;
 
   /// @brief New incident registered. @param severity 1-4.
   void incidentReported(const std::string &id, const std::string &location, int severity);
