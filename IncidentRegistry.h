@@ -25,25 +25,25 @@ public:
 
     /**
      * @brief Create a Incident object
-     * 
-     * @param location 
-     * @param description 
-     * @param type 
-     * @param severity 
-     * @param room 
-     * @return Incident* 
+     *
+     * @param location
+     * @param description
+     * @param type
+     * @param severity
+     * @param room
+     * @return Incident*
      */
-    Incident* createIncident(std::string location, std::string description, std::string type, int severity, ControlRoom *room);
+    Incident *createIncident(std::string location, std::string description, std::string type, int severity, ControlRoom *room);
     /**
      * @brief Returns the incident if it exists else returns nullptr
-     * 
-     * @param id 
-     * @return Incident* 
+     *
+     * @param id
+     * @return Incident*
      */
-    Incident* find(std::string id);
+    Incident *find(const std::string &id) const;
     /**
      * @brief Prints all incidents in id order
-     * 
+     *
      */
     void printIncidents() const;
 };

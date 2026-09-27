@@ -30,7 +30,7 @@ Incident *IncidentRegistry::createIncident(string location, string description, 
     return raw;
 }
 
-Incident *IncidentRegistry::find(string id)
+Incident *IncidentRegistry::find(const string &id) const
 {
     auto it = registry.find(id);
     if (it != registry.end())
