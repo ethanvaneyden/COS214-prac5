@@ -40,7 +40,7 @@ public:
      * @param id 
      * @return Incident* 
      */
-    Incident* find(std::string id);
+    Incident* find(std::string id) const;
     /**
      * @brief Prints all incidents in id order
      * 
