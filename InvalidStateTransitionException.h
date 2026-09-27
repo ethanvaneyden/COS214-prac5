@@ -10,7 +10,6 @@
  */
 class InvalidStateTransitionException : public std::runtime_error
 {
-private:
 public:
   /**
    * @brief Construct a new Invalid State Transition Exception object

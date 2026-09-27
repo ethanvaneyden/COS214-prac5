@@ -8,12 +8,6 @@
 #include "LegacyAlarmAdapter.h"
 #include <memory>
 #include <string>
-
-class IncidentRegistry;
-class CommandInvoker;
-class ControlRoom;
-class AlarmSystem;
-
 /**
  * @brief Facade. The operator's single entry point to CampusGuard.
  *

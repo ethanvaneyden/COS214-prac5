@@ -70,7 +70,7 @@ void OperationsDesk::dispatchAction(const string &incidentId, const string &acti
     {
         invoker->executeCommand(move(command));
     }
-    catch (exception &e)
+    catch (const exception &e)
     {
         cout << "[Desk] Operation rejected: " << e.what() << "\n";
     }

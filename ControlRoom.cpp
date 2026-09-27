@@ -100,10 +100,7 @@ void ControlRoom::entryRequested(const string &location, const string &requester
 {
     for (const auto &unit : registeredUnits)
     {
-        if (unit->getId() == requesterId)
-        {
-            unit->onEntryRequested(location, requesterId);
-        }
+        unit->onEntryRequested(location, requesterId);
     }
 }
 
