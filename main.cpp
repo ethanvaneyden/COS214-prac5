@@ -45,6 +45,17 @@ void printMenu()
          << "  0. Exit\n> ";
 }
 
+void startMenu()
+{
+    cout << "\n"
+         << "==============================================\n"
+         << "  CampusGuard\n"
+         << "==============================================\n"
+         << "  1. Free mode (manual operator console)\n"
+         << "  2. Guided demo (full scenario walkthrough)\n"
+         << "  0. Exit\n> ";
+}
+
 int main()
 {
     // Static testing
