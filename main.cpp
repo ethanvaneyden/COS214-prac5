@@ -70,29 +70,12 @@ string readLine(const string &prompt)
     return line;
 }
 
-void pause(const string &note = "")
-{
-    if (note.empty())
-    {
-        cout << "Press enter to continue\n";
-    }
-    else
-    {
-        cout << "[Press enter] " << note << "\n";
-    }
+void pause(const string &note = "") {
+    cout << "\n[press Enter";
+    if (!note.empty()) cout << ": " << note;
+    cout << "]\n";
     string temp;
     getline(cin, temp);
-}
-
-void startMenu()
-{
-    cout << "\n"
-         << "==============================================\n"
-         << "  CampusGuard\n"
-         << "==============================================\n"
-         << "  1. Free mode (manual operator console)\n"
-         << "  2. Guided demo (full scenario walkthrough)\n"
-         << "  0. Exit\n> ";
 }
 
 void step(int n, const string &title)
@@ -213,6 +196,75 @@ void runGuidedDemo(OperationsDesk &desk)
          << "  Factory Method, Adapter\n";
 }
 
+void runFreeMode(OperationsDesk &desk)
+{
+    cout << "\nTip: units must be registered before you can dispatch.\n"
+         << "Use option 5, or run the guided demo once.\n";
+
+    while (true)
+    {
+        printMenu();
+        int choice = readInt("");
+        if (choice == -1)
+        {
+            cout << "Invalid input.\n";
+            continue;
+        }
+
+        switch (choice)
+        {
+        case 1:
+        {
+            string type = readLine("Type: ");
+            string location = readLine("Location: ");
+            string description = readLine("Description: ");
+            int severity = readInt("Severity (1-4): ");
+            desk.reportIncident(type, location, description, severity);
+            break;
+        }
+        case 2:
+            desk.dispatchAction(readLine("Incident id: "), "dispatch");
+            break;
+        case 3:
+            desk.dispatchAction(readLine("Incident id: "), "resolve");
+            break;
+        case 4:
+            desk.dispatchAction(readLine("Incident id: "), "cancel");
+            break;
+        case 5:
+        {
+            string type = readLine("Unit type (security/medical/maintenance/comms): ");
+            string id = readLine("Unit id: ");
+            try
+            {
+                desk.registerUnit(type, id);
+            }
+            catch (const exception &e)
+            {
+                cout << "[Desk] " << e.what() << "\n";
+            }
+            break;
+        }
+        case 6:
+            desk.broadcastAlert(readLine("Message: "));
+            break;
+        case 7:
+            desk.evacuateBuilding(readLine("Building: "));
+            break;
+        case 8:
+            desk.listIncidents();
+            break;
+        case 9:
+            desk.listUnits();
+            break;
+        case 0:
+            return;
+        default:
+            cout << "Unknown option.\n";
+        }
+    }
+}
+
 int main()
 {
     // Static testing
@@ -223,5 +275,38 @@ int main()
     testOperationsDesk();
     testAdaptor();
 
-    //runGuidedDemo()
+    /*OperationsDesk desk;
+
+    while (true)
+    {
+        cout << "\n"
+                  << "==============================================\n"
+                  << "  CampusGuard\n"
+                  << "==============================================\n"
+                  << "  1. Guided demo (recommended)\n"
+                  << "  2. Free mode (manual console)\n"
+                  << "  0. Exit\n> ";
+
+        int choice = readInt("");
+        if (choice == -1)
+        {
+            cout << "Invalid input. Exiting.\n";
+            return 0;
+        }
+
+        switch (choice)
+        {
+        case 1:
+            runGuidedDemo(desk);
+            break;
+        case 2:
+            runFreeMode(desk);
+            break;
+        case 0:
+            cout << "Goodbye.\n";
+            return 0;
+        default:
+            cout << "Unknown option.\n";
+        }
+    }*/
 }
