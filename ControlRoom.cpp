@@ -91,3 +91,7 @@ void ControlRoom::entryRequested(const string &location, const string &requester
 void ControlRoom::listUnits() const {
     //TODO: Implement method
 }
+
+void ControlRoom::registerFactory(string type, unique_ptr<ResponseUnitFactory> factory) {
+    factories.emplace(type, move(factory));
+}

@@ -27,7 +27,7 @@ private:
 public:
   virtual ~ControlRoom() = default;
   ControlRoom();
-  
+
   /// @brief New incident registered. @param severity 1-4.
   void incidentReported(const std::string &id, const std::string &location, int severity);
 
@@ -45,6 +45,10 @@ public:
 
   /// @brief Free-form broadcast to all units.
   void emergencyAlert(const std::string &message);
+
+  /// @brief Register the factory
+  /// @param factory 
+  void registerFactory(std::string type, std::unique_ptr<ResponseUnitFactory> factory);
 
   /// @brief Create via factory for @p type and register. @throws
   /// std::invalid_argument.

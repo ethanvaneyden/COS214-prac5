@@ -1,4 +1,33 @@
+void testControlRoom() {
+
+}
+
+void testState() {
+
+}
+
+void testCommand() {
+
+}
+
+void testFactory() {
+
+}
+
+void testOperationsDesk() {
+
+}
+
+void testAdaptor() {
+
+}
+
 int main()
 {
-    return 0;
+    testState();
+    testControlRoom();
+    testCommand();
+    testFactory();
+    testOperationsDesk();
+    testAdaptor();
 }
