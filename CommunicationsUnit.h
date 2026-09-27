@@ -3,12 +3,16 @@
 
 #include "ResponseUnit.h"
 
+#include <string>
+#include <unordered_map>
+
 class AlarmSystem;
 
 class CommunicationsUnit : public ResponseUnit
 {
 private:
     AlarmSystem* alarmSystem;
+    std::unordered_map<std::string, std::string> activeAlerts;
 
 public:
     CommunicationsUnit(const std::string& id, AlarmSystem* alarmSystem);
@@ -24,6 +28,8 @@ public:
     void onIncidentCancelled(const std::string& incidentId) override;
 
     void onAreaSecured(const std::string& location) override;
+
+    void onEmergencyAlert(const std::string& message) override;
 };
 
 #endif
