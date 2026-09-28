@@ -733,8 +733,6 @@ void runFreeMode(OperationsDesk &desk)
 
 int main(int argc, char *argv[])
 {
-    runStaticTests();
-    /*
     // Useful for coverage/static testing without entering the interactive menu.
     if (argc > 1 && string(argv[1]) == "--tests")
     {
@@ -791,5 +789,4 @@ int main(int argc, char *argv[])
             cout << "Unknown option.\n";
         }
     }
-    */
 }

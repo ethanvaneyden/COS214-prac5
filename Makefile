@@ -2,7 +2,7 @@ CXX = g++
 CXXFLAGS = -std=c++11 -g
 COVERAGE_FLAGS = --coverage
 
-TARGET = campusgaurd
+TARGET = campusguard
 
 SRCS = $(wildcard *.cpp)
 
