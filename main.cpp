@@ -380,11 +380,11 @@ void runGuidedDemo(OperationsDesk &desk)
 
     step(4, "Colleague-initiated cascade (Mediator in action)");
     cout << "Above, Security discovered a gas leak on scene and told\n"
-            "the mediator via hazardDetected(). Maintenance fixed it\n"
-            "and told the mediator via areaSecured(). Medical waited\n"
-            "for that before entering. Security holds NO pointer to\n"
-            "Maintenance or Medical. Coordination happens through the\n"
-            "ControlRoom mediator.\n";
+        "the mediator via hazardDetected(). Maintenance handled the\n"
+        "hazard. Medical then requested safe entry through the mediator,\n"
+        "Security secured the area and reported areaSecured(), and only\n"
+        "then did Medical enter. Security holds NO pointer to Maintenance\n"
+        "or Medical. Coordination happens through the ControlRoom mediator.\n";
     pause();
 
     step(5, "Resolve the incident (Command + State)");

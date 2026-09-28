@@ -1,12 +1,16 @@
-
 #include "ControlRoom.h"
 #include "ResponseUnit.h"
 #include "ResponseUnitFactory.h"
+
 #include <iostream>
+#include <utility>
 
 using namespace std;
 
-void ControlRoom::incidentReported(const string &id, const string &location, int severity)
+void ControlRoom::incidentReported(
+    const string &id,
+    const string &location,
+    int severity)
 {
     for (const auto &unit : registeredUnits)
     {
@@ -14,20 +18,25 @@ void ControlRoom::incidentReported(const string &id, const string &location, int
     }
 }
 
-void ControlRoom::incidentDispatched(const string &id, const string &location, const string &unitType, int severity)
+void ControlRoom::incidentDispatched(
+    const string &id,
+    const string &location,
+    const string &unitType,
+    int severity)
 {
     for (const auto &unit : registeredUnits)
     {
-        unit->onIncidentDispatched(id, location, unitType, severity);
-    }
-
-    if (severity >= 4)
-    {
-        areaSecured(location);
+        unit->onIncidentDispatched(
+            id,
+            location,
+            unitType,
+            severity);
     }
 }
 
-void ControlRoom::incidentResolved(const string &id, const string &unitType)
+void ControlRoom::incidentResolved(
+    const string &id,
+    const string &unitType)
 {
     for (const auto &unit : registeredUnits)
     {
@@ -35,7 +44,8 @@ void ControlRoom::incidentResolved(const string &id, const string &unitType)
     }
 }
 
-void ControlRoom::incidentCancelled(const string &id)
+void ControlRoom::incidentCancelled(
+    const string &id)
 {
     for (const auto &unit : registeredUnits)
     {
@@ -43,7 +53,8 @@ void ControlRoom::incidentCancelled(const string &id)
     }
 }
 
-void ControlRoom::areaSecured(const string &location)
+void ControlRoom::areaSecured(
+    const string &location)
 {
     for (const auto &unit : registeredUnits)
     {
@@ -51,7 +62,8 @@ void ControlRoom::areaSecured(const string &location)
     }
 }
 
-void ControlRoom::emergencyAlert(const string &message)
+void ControlRoom::emergencyAlert(
+    const string &message)
 {
     for (const auto &unit : registeredUnits)
     {
@@ -59,19 +71,22 @@ void ControlRoom::emergencyAlert(const string &message)
     }
 }
 
-void ControlRoom::createUnit(const string &type, const string &id)
+void ControlRoom::createUnit(
+    const string &type,
+    const string &id)
 {
     auto it = factories.find(type);
-    if (it != factories.end())
+
+    if (it == factories.end())
     {
-        auto &factory = it->second;
-        unique_ptr<ResponseUnit> unit = factory->createUnit(id);
-        unit->setControlRoom(this);
-        if (it != factories.end())
-{
+        cout << "Can't create that unit!\n";
+        return;
+    }
+
     auto &factory = it->second;
 
-    unique_ptr<ResponseUnit> unit = factory->createUnit(id);
+    unique_ptr<ResponseUnit> unit =
+        factory->createUnit(id);
 
     if (!unit)
     {
@@ -82,17 +97,14 @@ void ControlRoom::createUnit(const string &type, const string &id)
     unit->setControlRoom(this);
 
     cout << "[Control Room] registered "
-         << unit->getId() << "\n";
+         << unit->getId()
+         << "\n";
 
     registeredUnits.push_back(move(unit));
-    }
-    else
-    {
-        cout << "Can't create that unit!\n";
-    }
 }
 
-ResponseUnit *ControlRoom::findUnit(const string &unitId) const
+ResponseUnit *ControlRoom::findUnit(
+    const string &unitId) const
 {
     for (const auto &unit : registeredUnits)
     {
@@ -101,22 +113,31 @@ ResponseUnit *ControlRoom::findUnit(const string &unitId) const
             return unit.get();
         }
     }
+
     return nullptr;
 }
 
-void ControlRoom::hazardDetected(const string &location, const string &hazard)
+void ControlRoom::hazardDetected(
+    const string &location,
+    const string &hazard)
 {
     for (const auto &unit : registeredUnits)
     {
-        unit->onHazardDetected(location, hazard);
+        unit->onHazardDetected(
+            location,
+            hazard);
     }
 }
 
-void ControlRoom::entryRequested(const string &location, const string &requesterId)
+void ControlRoom::entryRequested(
+    const string &location,
+    const string &requesterId)
 {
     for (const auto &unit : registeredUnits)
     {
-        unit->onEntryRequested(location, requesterId);
+        unit->onEntryRequested(
+            location,
+            requesterId);
     }
 }
 
@@ -130,13 +151,19 @@ void ControlRoom::listUnits() const
 
     for (const auto &unit : registeredUnits)
     {
-
-        cout << "  " << unit->getId()
-             << " (" << unit->getUnitType() << ")\n";
+        cout << "  "
+             << unit->getId()
+             << " ("
+             << unit->getUnitType()
+             << ")\n";
     }
 }
 
-void ControlRoom::registerFactory(string type, unique_ptr<ResponseUnitFactory> factory)
+void ControlRoom::registerFactory(
+    string type,
+    unique_ptr<ResponseUnitFactory> factory)
 {
-    factories.emplace(type, move(factory));
+    factories.emplace(
+        type,
+        move(factory));
 }
