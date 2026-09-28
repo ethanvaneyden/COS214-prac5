@@ -18,6 +18,10 @@ public:
 
     void onIncidentCancelled(const std::string& incidentId) override;
 
+    void onEntryRequested(const std::string& location, const std::string& requesterId) override;
+
+    void onAreaSecured(const std::string& location) override;
+
     void onHazardDetected(const std::string& location, const std::string& hazard) override;
 };
 

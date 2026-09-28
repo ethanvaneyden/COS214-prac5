@@ -46,14 +46,17 @@ public:
     {
     }
 
-    virtual void enterArea(const std::string &location)
+    virtual void onEntryRequested(const std::string& location, const std::string& requesterId)
     {
     }
 
-    virtual void onEntryRequested(const std::string &location,
-                                  const std::string &requesterId) {}
+    virtual void onEmergencyAlert(const std::string& message)
+    {
+    }
 
-    virtual void onEmergencyAlert(const std::string &message) {}
+    virtual void enterArea(const std::string &location)
+    {
+    }
 };
 
 #endif
