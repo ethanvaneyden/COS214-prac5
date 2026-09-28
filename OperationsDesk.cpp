@@ -78,10 +78,6 @@ void OperationsDesk::dispatchAction(const string &incidentId, const string &acti
 
 void OperationsDesk::evacuateBuilding(const std::string &buildingId)
 {
-    alarm->triggerAlert(buildingId, 4);
-
-    controlRoom->emergencyAlert("Evacuate building: " + buildingId);
-
     string id = reportIncident("evacuation", buildingId, "Building evacuation", 4);
 
     if (id.empty())
@@ -90,6 +86,8 @@ void OperationsDesk::evacuateBuilding(const std::string &buildingId)
         return;
     }
 
+    alarm->triggerAlert(buildingId, 4);
+    controlRoom->emergencyAlert("Evacuate building: " + buildingId);
     dispatchAction(id, "dispatch");
 
     cout << "[Desk] Evacuation workflow complete for " << buildingId << "\n";

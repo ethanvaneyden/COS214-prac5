@@ -44,6 +44,10 @@ void Incident::cancel()
 
 void Incident::setState(unique_ptr<IncidentState> newState)
 {
+  if (!newState)
+  {
+    throw InvalidStateTransitionException("Incident state cannot be null for " + id);
+  }
   state = std::move(newState);
 }
 
