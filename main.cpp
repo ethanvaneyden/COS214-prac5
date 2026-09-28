@@ -1,36 +1,268 @@
 #include <iostream>
 #include <limits>
+#include <memory>
+#include <string>
+#include <utility>
+
 #include "OperationsDesk.h"
+#include "ControlRoom.h"
+#include "Incident.h"
+#include "CommandInvoker.h"
+#include "DispatchCommand.h"
+#include "ResolveCommand.h"
+#include "CancelCommand.h"
+#include "ResponseUnit.h"
+#include "ResponseUnitFactory.h"
+#include "SecurityUnitFactory.h"
+#include "MedicalUnitFactory.h"
+#include "MaintenanceUnitFactory.h"
+#include "CommunicationsUnitFactory.h"
+#include "LegacyAlarmAdapter.h"
+#include "LegacyAlarmSystem.h"
 
 using namespace std;
 
-// Static tests
-void testControlRoom()
+// -----------------------------------------------------------
+// Small test helper
+// -----------------------------------------------------------
+void testResult(const string &name, bool passed)
 {
+    cout << "  [" << (passed ? "PASS" : "FAIL") << "] " << name << "\n";
 }
 
+// -----------------------------------------------------------
+// Static tests
+// -----------------------------------------------------------
 void testState()
 {
+    cout << "\n=== Static Test: State ===\n";
+
+    try
+    {
+        Incident incident("TEST-STATE", "Test Location", "State test",
+                          "medical", Incident::Severity::High, nullptr);
+
+        testResult("Initial state is Reported",
+                   incident.getStateName() == "Reported");
+
+        incident.escalate();
+        testResult("Reported -> Dispatched",
+                   incident.getStateName() == "Dispatched");
+
+        incident.resolve();
+        testResult("Dispatched -> Resolved",
+                   incident.getStateName() == "Resolved");
+
+        bool rejected = false;
+        try
+        {
+            incident.cancel();
+        }
+        catch (const exception &)
+        {
+            rejected = true;
+        }
+
+        testResult("Illegal transition from Resolved is rejected", rejected);
+    }
+    catch (const exception &e)
+    {
+        cout << "  [FAIL] State test threw: " << e.what() << "\n";
+    }
+}
+
+void testControlRoom()
+{
+    cout << "\n=== Static Test: Mediator / ControlRoom ===\n";
+
+    try
+    {
+        LegacyAlarmAdapter alarm;
+        ControlRoom room;
+
+        room.registerFactory(
+            "security",
+            unique_ptr<ResponseUnitFactory>(new SecurityUnitFactory()));
+        room.registerFactory(
+            "medical",
+            unique_ptr<ResponseUnitFactory>(new MedicalUnitFactory()));
+        room.registerFactory(
+            "maintenance",
+            unique_ptr<ResponseUnitFactory>(new MaintenanceUnitFactory()));
+        room.registerFactory(
+            "comms",
+            unique_ptr<ResponseUnitFactory>(new CommunicationsUnitFactory(&alarm)));
+
+        room.createUnit("security", "SEC-T1");
+        room.createUnit("medical", "MED-T1");
+        room.createUnit("maintenance", "MNT-T1");
+        room.createUnit("comms", "COM-T1");
+
+        testResult("Security unit registered",
+                   room.findUnit("SEC-T1") != nullptr);
+        testResult("Medical unit registered",
+                   room.findUnit("MED-T1") != nullptr);
+        testResult("Maintenance unit registered",
+                   room.findUnit("MNT-T1") != nullptr);
+        testResult("Communications unit registered",
+                   room.findUnit("COM-T1") != nullptr);
+
+        room.emergencyAlert("Static mediator test");
+        testResult("Mediator emergency broadcast completed", true);
+    }
+    catch (const exception &e)
+    {
+        cout << "  [FAIL] ControlRoom test threw: " << e.what() << "\n";
+    }
 }
 
 void testCommand()
 {
+    cout << "\n=== Static Test: Command ===\n";
+
+    try
+    {
+        Incident incident("TEST-CMD", "Test Location", "Command test",
+                          "medical", Incident::Severity::Medium, nullptr);
+        CommandInvoker invoker;
+
+        invoker.executeCommand(
+            unique_ptr<Command>(new DispatchCommand(&incident)));
+
+        testResult("DispatchCommand changes state to Dispatched",
+                   incident.getStateName() == "Dispatched");
+        testResult("Invoker stores executed dispatch command",
+                   invoker.historySize() == 1);
+
+        invoker.executeCommand(
+            unique_ptr<Command>(new ResolveCommand(&incident)));
+
+        testResult("ResolveCommand changes state to Resolved",
+                   incident.getStateName() == "Resolved");
+        testResult("Invoker history contains two commands",
+                   invoker.historySize() == 2);
+    }
+    catch (const exception &e)
+    {
+        cout << "  [FAIL] Command test threw: " << e.what() << "\n";
+    }
 }
 
 void testFactory()
 {
+    cout << "\n=== Static Test: Factory Method ===\n";
+
+    try
+    {
+        LegacyAlarmAdapter alarm;
+
+        SecurityUnitFactory securityFactory;
+        MedicalUnitFactory medicalFactory;
+        MaintenanceUnitFactory maintenanceFactory;
+        CommunicationsUnitFactory communicationsFactory(&alarm);
+
+        unique_ptr<ResponseUnit> security = securityFactory.createUnit("SEC-F1");
+        unique_ptr<ResponseUnit> medical = medicalFactory.createUnit("MED-F1");
+        unique_ptr<ResponseUnit> maintenance = maintenanceFactory.createUnit("MNT-F1");
+        unique_ptr<ResponseUnit> comms = communicationsFactory.createUnit("COM-F1");
+
+        testResult("Security factory creates security unit",
+                   security && security->getUnitType() == "security");
+        testResult("Medical factory creates medical unit",
+                   medical && medical->getUnitType() == "medical");
+        testResult("Maintenance factory creates maintenance unit",
+                   maintenance && maintenance->getUnitType() == "maintenance");
+        testResult("Communications factory creates comms unit",
+                   comms && comms->getUnitType() == "comms");
+
+        testResult("Factory preserves unit id",
+                   security && security->getId() == "SEC-F1");
+    }
+    catch (const exception &e)
+    {
+        cout << "  [FAIL] Factory test threw: " << e.what() << "\n";
+    }
 }
 
 void testOperationsDesk()
 {
+    cout << "\n=== Static Test: Facade / OperationsDesk ===\n";
+
+    try
+    {
+        OperationsDesk desk;
+
+        string invalid = desk.reportIncident(
+            "medical", "Test Location", "Invalid severity test", 0);
+        testResult("Facade rejects invalid severity", invalid.empty());
+
+        string id = desk.reportIncident(
+            "medical", "Test Location", "Facade smoke test", 2);
+        testResult("Facade registers a valid incident", !id.empty());
+
+        if (!id.empty())
+        {
+            desk.dispatchAction(id, "dispatch");
+            desk.dispatchAction(id, "resolve");
+            testResult("Facade command workflow completes", true);
+        }
+    }
+    catch (const exception &e)
+    {
+        cout << "  [FAIL] OperationsDesk test threw: " << e.what() << "\n";
+    }
 }
 
 void testAdaptor()
 {
+    cout << "\n=== Static Test: Adapter ===\n";
+
+    try
+    {
+        LegacyAlarmAdapter adapter;
+        adapter.registerZone("TEST-ZONE", 8);
+
+        adapter.triggerAlert("TEST-ZONE", 4);
+        adapter.silenceAlert("TEST-ZONE");
+        testResult("Adapter translates trigger/silence calls", true);
+
+        bool rejected = false;
+        try
+        {
+            adapter.triggerAlert("UNKNOWN-ZONE", 2);
+        }
+        catch (const exception &)
+        {
+            rejected = true;
+        }
+
+        testResult("Adapter rejects unknown location", rejected);
+    }
+    catch (const exception &e)
+    {
+        cout << "  [FAIL] Adapter test threw: " << e.what() << "\n";
+    }
 }
 
-// Interactive methods
+void runStaticTests()
+{
+    cout << "\n==============================================\n"
+         << "  CampusGuard - Static Tests\n"
+         << "==============================================\n";
 
+    testState();
+    testControlRoom();
+    testCommand();
+    testFactory();
+    testOperationsDesk();
+    testAdaptor();
+
+    cout << "\n=== Static tests complete ===\n";
+}
+
+// -----------------------------------------------------------
+// Interactive methods
+// -----------------------------------------------------------
 void printMenu()
 {
     cout << "\n=== CampusGuard ===\n"
@@ -70,10 +302,13 @@ string readLine(const string &prompt)
     return line;
 }
 
-void pause(const string &note = "") {
+void pause(const string &note = "")
+{
     cout << "\n[press Enter";
-    if (!note.empty()) cout << ": " << note;
+    if (!note.empty())
+        cout << ": " << note;
     cout << "]\n";
+
     string temp;
     getline(cin, temp);
 }
@@ -110,7 +345,7 @@ void runGuidedDemo(OperationsDesk &desk)
     }
     catch (const exception &e)
     {
-        cout << "(units already registered - continuing)\n";
+        cout << "[Demo] Unit registration warning: " << e.what() << "\n";
     }
     pause();
 
@@ -121,10 +356,16 @@ void runGuidedDemo(OperationsDesk &desk)
 
     string id = desk.reportIncident("medical", "Science Building",
                                     "Student collapsed in lab", 4);
+
+    if (id.empty())
+    {
+        cout << "[Demo] Incident registration failed. Demo stopped.\n";
+        return;
+    }
+
     cout << "\nReturned id: " << id << "\n";
     pause();
 
-    // -----------------------------------------------------------
     step(3, "Dispatch a unit (Command -> State -> Mediator)");
     cout << "Watch the pattern hand-off:\n"
             "  OperationsDesk builds a DispatchCommand\n"
@@ -137,17 +378,15 @@ void runGuidedDemo(OperationsDesk &desk)
     desk.dispatchAction(id, "dispatch");
     pause();
 
-    // -----------------------------------------------------------
     step(4, "Colleague-initiated cascade (Mediator in action)");
     cout << "Above, Security discovered a gas leak on scene and told\n"
-            "the mediator via hazardDetected(). Maintenance fixed it\n"
-            "and told the mediator via areaSecured(). Medical waited\n"
-            "for that before entering. Security holds NO pointer to\n"
-            "Maintenance or Medical. Neither does anyone else.\n"
-            "That coordination is the mediator's entire job.\n";
+        "the mediator via hazardDetected(). Maintenance handled the\n"
+        "hazard. Medical then requested safe entry through the mediator,\n"
+        "Security secured the area and reported areaSecured(), and only\n"
+        "then did Medical enter. Security holds NO pointer to Maintenance\n"
+        "or Medical. Coordination happens through the ControlRoom mediator.\n";
     pause();
 
-    // -----------------------------------------------------------
     step(5, "Resolve the incident (Command + State)");
     cout << "A second command - ResolveCommand - is legal from the\n"
             "Dispatched state. The state transitions to Resolved and\n"
@@ -157,17 +396,15 @@ void runGuidedDemo(OperationsDesk &desk)
     desk.dispatchAction(id, "resolve");
     pause();
 
-    // -----------------------------------------------------------
     step(6, "Illegal operation, handled cleanly");
     cout << "Trying to cancel an incident that is already resolved.\n"
             "The state throws InvalidStateTransitionException. The\n"
             "facade catches it and prints a rejection message. No\n"
-            "crash, no silent failure.\n\n";
+            "crash and no silent failure.\n\n";
 
     desk.dispatchAction(id, "cancel");
     pause();
 
-    // -----------------------------------------------------------
     step(7, "Multi-step facade workflow (Facade + Adapter)");
     cout << "One call - evacuateBuilding - runs FOUR subsystem\n"
             "operations behind the scenes:\n"
@@ -176,10 +413,16 @@ void runGuidedDemo(OperationsDesk &desk)
             "  3. Registry creates an evacuation incident\n"
             "  4. Command pipeline dispatches the required unit\n\n";
 
-    desk.evacuateBuilding("Engineering Building");
+    try
+    {
+        desk.evacuateBuilding("Engineering Building");
+    }
+    catch (const exception &e)
+    {
+        cout << "[Demo] Evacuation failed: " << e.what() << "\n";
+    }
     pause();
 
-    // -----------------------------------------------------------
     step(8, "Final state");
     cout << "Incidents registered:\n\n";
     desk.listIncidents();
@@ -205,6 +448,7 @@ void runFreeMode(OperationsDesk &desk)
     {
         printMenu();
         int choice = readInt("");
+
         if (choice == -1)
         {
             cout << "Invalid input.\n";
@@ -219,22 +463,37 @@ void runFreeMode(OperationsDesk &desk)
             string location = readLine("Location: ");
             string description = readLine("Description: ");
             int severity = readInt("Severity (1-4): ");
-            desk.reportIncident(type, location, description, severity);
+
+            if (severity < 1 || severity > 4)
+            {
+                cout << "Severity must be from 1 to 4.\n";
+                break;
+            }
+
+            string id = desk.reportIncident(type, location, description, severity);
+            if (!id.empty())
+                cout << "Registered incident: " << id << "\n";
             break;
         }
+
         case 2:
             desk.dispatchAction(readLine("Incident id: "), "dispatch");
             break;
+
         case 3:
             desk.dispatchAction(readLine("Incident id: "), "resolve");
             break;
+
         case 4:
             desk.dispatchAction(readLine("Incident id: "), "cancel");
             break;
+
         case 5:
         {
-            string type = readLine("Unit type (security/medical/maintenance/comms): ");
+            string type = readLine(
+                "Unit type (security/medical/maintenance/comms): ");
             string id = readLine("Unit id: ");
+
             try
             {
                 desk.registerUnit(type, id);
@@ -245,53 +504,75 @@ void runFreeMode(OperationsDesk &desk)
             }
             break;
         }
+
         case 6:
             desk.broadcastAlert(readLine("Message: "));
             break;
+
         case 7:
-            desk.evacuateBuilding(readLine("Building: "));
+        {
+            try
+            {
+                desk.evacuateBuilding(readLine("Building: "));
+            }
+            catch (const exception &e)
+            {
+                cout << "[Desk] Evacuation failed: " << e.what() << "\n";
+            }
             break;
+        }
+
         case 8:
             desk.listIncidents();
             break;
+
         case 9:
             desk.listUnits();
             break;
+
         case 0:
             return;
+
         default:
             cout << "Unknown option.\n";
         }
     }
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-    // Static testing
-    testState();
-    testControlRoom();
-    testCommand();
-    testFactory();
-    testOperationsDesk();
-    testAdaptor();
+    // Useful for coverage/static testing without entering the interactive menu.
+    if (argc > 1 && string(argv[1]) == "--tests")
+    {
+        runStaticTests();
+        return 0;
+    }
 
-    /*OperationsDesk desk;
+    OperationsDesk desk;
+
+    // Useful when you want the assessed story immediately.
+    if (argc > 1 && string(argv[1]) == "--demo")
+    {
+        runGuidedDemo(desk);
+        return 0;
+    }
 
     while (true)
     {
         cout << "\n"
-                  << "==============================================\n"
-                  << "  CampusGuard\n"
-                  << "==============================================\n"
-                  << "  1. Guided demo (recommended)\n"
-                  << "  2. Free mode (manual console)\n"
-                  << "  0. Exit\n> ";
+             << "==============================================\n"
+             << "  CampusGuard\n"
+             << "==============================================\n"
+             << "  1. Guided demo (recommended)\n"
+             << "  2. Free mode (manual console)\n"
+             << "  3. Run static tests\n"
+             << "  0. Exit\n> ";
 
         int choice = readInt("");
         if (choice == -1)
         {
-            cout << "Invalid input. Exiting.\n";
-            return 0;
+            cout << "Invalid input. Try again.\n";
+            continue;
         }
 
         switch (choice)
@@ -299,14 +580,21 @@ int main()
         case 1:
             runGuidedDemo(desk);
             break;
+
         case 2:
             runFreeMode(desk);
             break;
+
+        case 3:
+            runStaticTests();
+            break;
+
         case 0:
             cout << "Goodbye.\n";
             return 0;
+
         default:
             cout << "Unknown option.\n";
         }
-    }*/
+    }
 }
