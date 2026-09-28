@@ -67,8 +67,24 @@ void ControlRoom::createUnit(const string &type, const string &id)
         auto &factory = it->second;
         unique_ptr<ResponseUnit> unit = factory->createUnit(id);
         unit->setControlRoom(this);
-        registeredUnits.push_back(move(unit));
-        cout << "[Control Room] registered " << unit->getId() << "\n";
+        if (it != factories.end())
+{
+    auto &factory = it->second;
+
+    unique_ptr<ResponseUnit> unit = factory->createUnit(id);
+
+    if (!unit)
+    {
+        cout << "Factory failed to create unit!\n";
+        return;
+    }
+
+    unit->setControlRoom(this);
+
+    cout << "[Control Room] registered "
+         << unit->getId() << "\n";
+
+    registeredUnits.push_back(move(unit));
     }
     else
     {
