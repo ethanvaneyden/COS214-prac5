@@ -19,8 +19,40 @@
 #include "CommunicationsUnitFactory.h"
 #include "LegacyAlarmAdapter.h"
 #include "LegacyAlarmSystem.h"
+#include "IncidentRegistry.h"
 
 using namespace std;
+
+template <typename Operation>
+bool throwsException(Operation operation)
+{
+    try
+    {
+        operation();
+    }
+    catch (const exception &)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+class NullUnitFactory : public ResponseUnitFactory
+{
+public:
+    string factoryType() const override
+    {
+        return "null";
+    }
+
+    unique_ptr<ResponseUnit> createUnit(const string &) const override
+    {
+        return nullptr;
+    }
+};
+
+void testRegistry();
 
 // -----------------------------------------------------------
 // Small test helper
@@ -44,6 +76,21 @@ void testState()
 
         testResult("Initial state is Reported",
                    incident.getStateName() == "Reported");
+        testResult("Incident accessors preserve supplied data",
+                   incident.getId() == "TEST-STATE" &&
+                       incident.getLocation() == "Test Location" &&
+                       incident.getDescription() == "State test" &&
+                       incident.getType() == "medical" &&
+                       incident.getSeverity() == Incident::Severity::High &&
+                       incident.getSeverityNumber() == 3 &&
+                       incident.getRequiredUnitType() == "Medical" &&
+                       incident.getControlRoom() == nullptr);
+        testResult("Unmapped incident type defaults to Security",
+                   Incident("TEST-FALLBACK", "Somewhere", "Unknown type",
+                            "unknown", Incident::Severity::Low, nullptr)
+                           .getRequiredUnitType() == "Security");
+        testResult("Reported incident cannot be resolved",
+                   throwsException([&incident]() { incident.resolve(); }));
 
         incident.escalate();
         testResult("Reported -> Dispatched",
@@ -64,6 +111,35 @@ void testState()
         }
 
         testResult("Illegal transition from Resolved is rejected", rejected);
+
+        testResult("Resolved incident cannot be escalated or resolved again",
+                   throwsException([&incident]() { incident.escalate(); }) &&
+                       throwsException([&incident]() { incident.resolve(); }));
+
+        Incident cancelled("TEST-CANCEL", "Test Location", "Cancel test",
+                           "theft", Incident::Severity::Low, nullptr);
+        cancelled.cancel();
+        testResult("Reported -> Cancelled",
+                   cancelled.getStateName() == "Cancelled");
+        testResult("Cancelled incident rejects every further transition",
+                   throwsException([&cancelled]() { cancelled.escalate(); }) &&
+                       throwsException([&cancelled]() { cancelled.resolve(); }) &&
+                       throwsException([&cancelled]() { cancelled.cancel(); }));
+
+        Incident dispatched("TEST-DISPATCHED", "Test Location", "Cancel after dispatch",
+                            "facility", Incident::Severity::Medium, nullptr);
+        dispatched.escalate();
+        testResult("Dispatched incident cannot be escalated twice",
+                   throwsException([&dispatched]() { dispatched.escalate(); }));
+        dispatched.cancel();
+        testResult("Dispatched -> Cancelled",
+                   dispatched.getStateName() == "Cancelled");
+        dispatched.setState(nullptr);
+        testResult("Missing state reports Unknown and rejects transitions",
+                   dispatched.getStateName() == "Unknown" &&
+                       throwsException([&dispatched]() { dispatched.escalate(); }) &&
+                       throwsException([&dispatched]() { dispatched.resolve(); }) &&
+                       throwsException([&dispatched]() { dispatched.cancel(); }));
     }
     catch (const exception &e)
     {
@@ -106,9 +182,35 @@ void testControlRoom()
                    room.findUnit("MNT-T1") != nullptr);
         testResult("Communications unit registered",
                    room.findUnit("COM-T1") != nullptr);
+        testResult("Unknown unit lookup returns null",
+               room.findUnit("MISSING") == nullptr);
+
+        room.registerFactory("null", unique_ptr<ResponseUnitFactory>(new NullUnitFactory()));
+        room.createUnit("missing", "NO-FACTORY");
+        room.createUnit("null", "NO-UNIT");
+
+        room.incidentReported("MED-INC", "Science Building", 4);
+        room.incidentDispatched("MED-INC", "Science Building", "Medical", 4);
+        room.incidentResolved("MED-INC", "Medical");
+        room.incidentCancelled("CANCEL-INC");
+        room.hazardDetected("Science Building", "gas");
+        room.hazardDetected("Science Building", "smoke");
+        room.entryRequested("Science Building", "MED-T1");
+        room.areaSecured("Science Building");
 
         room.emergencyAlert("Static mediator test");
         testResult("Mediator emergency broadcast completed", true);
+
+        ControlRoom emptyRoom;
+        emptyRoom.listUnits();
+        emptyRoom.incidentReported("EMPTY", "Nowhere", 1);
+        emptyRoom.incidentDispatched("EMPTY", "Nowhere", "Security", 1);
+        emptyRoom.incidentResolved("EMPTY", "Security");
+        emptyRoom.incidentCancelled("EMPTY");
+        emptyRoom.hazardDetected("Nowhere", "smoke");
+        emptyRoom.entryRequested("Nowhere", "Nobody");
+        emptyRoom.areaSecured("Nowhere");
+        emptyRoom.emergencyAlert("No units registered");
     }
     catch (const exception &e)
     {
@@ -141,6 +243,30 @@ void testCommand()
                    incident.getStateName() == "Resolved");
         testResult("Invoker history contains two commands",
                    invoker.historySize() == 2);
+
+        invoker.printHistory();
+        invoker.executeCommand(nullptr);
+        testResult("Invoker ignores an empty command", invoker.historySize() == 2);
+
+        CommandInvoker emptyInvoker;
+        emptyInvoker.printHistory();
+        testResult("Null-incident commands describe and reject cleanly",
+                   DispatchCommand(nullptr).description() == "Dispatch <no incident>" &&
+                       throwsException([]() { DispatchCommand(nullptr).execute(); }) &&
+                       ResolveCommand(nullptr).description() == "Resolve <no incident>" &&
+                       throwsException([]() { ResolveCommand(nullptr).execute(); }) &&
+                       CancelCommand(nullptr).description() == "Cancel <no incident>" &&
+                       throwsException([]() { CancelCommand(nullptr).execute(); }));
+
+        Incident invalidCommand("TEST-INVALID-CMD", "Test Location", "Invalid command",
+                                "medical", Incident::Severity::Low, nullptr);
+        CommandInvoker failedInvoker;
+        bool failedCommandRejected = throwsException([&failedInvoker, &invalidCommand]() {
+            failedInvoker.executeCommand(unique_ptr<Command>(new ResolveCommand(&invalidCommand)));
+        });
+        testResult("Failed command is rejected and not added to history",
+                   failedCommandRejected && failedInvoker.historySize() == 0 &&
+                       invalidCommand.getStateName() == "Reported");
     }
     catch (const exception &e)
     {
@@ -177,6 +303,11 @@ void testFactory()
 
         testResult("Factory preserves unit id",
                    security && security->getId() == "SEC-F1");
+        testResult("Factories report their registered unit types",
+                   securityFactory.factoryType() == "security" &&
+                       medicalFactory.factoryType() == "medical" &&
+                       maintenanceFactory.factoryType() == "maintenance" &&
+                       communicationsFactory.factoryType() == "comms");
     }
     catch (const exception &e)
     {
@@ -206,6 +337,24 @@ void testOperationsDesk()
             desk.dispatchAction(id, "resolve");
             testResult("Facade command workflow completes", true);
         }
+
+        desk.dispatchAction("missing-id", "dispatch");
+        desk.dispatchAction(id, "unknown-action");
+
+        string cancelId = desk.reportIncident(
+            "theft", "Test Location", "Cancel workflow", 1);
+        desk.dispatchAction(cancelId, "cancel");
+        testResult("Facade cancels a reported incident", true);
+
+        desk.registerUnit("unknown", "UNKNOWN-UNIT");
+        desk.broadcastAlert("Facade broadcast");
+        desk.listIncidents();
+        desk.listUnits();
+
+        desk.evacuateBuilding("Science Building");
+        testResult("Facade completes evacuation at a wired building", true);
+        testResult("Facade propagates adapter errors for unwired buildings",
+                   throwsException([&desk]() { desk.evacuateBuilding("Unwired Building"); }));
     }
     catch (const exception &e)
     {
@@ -223,6 +372,9 @@ void testAdaptor()
         adapter.registerZone("TEST-ZONE", 8);
 
         adapter.triggerAlert("TEST-ZONE", 4);
+        adapter.triggerAlert("TEST-ZONE", 1);
+        adapter.triggerAlert("TEST-ZONE", 2);
+        adapter.triggerAlert("TEST-ZONE", 3);
         adapter.silenceAlert("TEST-ZONE");
         testResult("Adapter translates trigger/silence calls", true);
 
@@ -237,6 +389,24 @@ void testAdaptor()
         }
 
         testResult("Adapter rejects unknown location", rejected);
+
+        testResult("Adapter rejects out-of-range alert levels",
+                   throwsException([&adapter]() { adapter.triggerAlert("TEST-ZONE", 0); }) &&
+                       throwsException([&adapter]() { adapter.triggerAlert("TEST-ZONE", 5); }));
+        testResult("Adapter rejects invalid hardware zones",
+                   throwsException([&adapter]() { adapter.registerZone("BAD-ZONE", 0); }) &&
+                       throwsException([&adapter]() { adapter.registerZone("BAD-ZONE", 9); }));
+
+        LegacyAlarmSystem legacy;
+        testResult("Legacy alarm reports default, set, and cleared status",
+                   legacy.getZoneStatus(3) == "MODE:0" &&
+                       legacy.setAlarm(3, 2) == 0 &&
+                       legacy.getZoneStatus(3) == "MODE:2" &&
+                       legacy.clearAlarm(3) == 0 &&
+                       legacy.getZoneStatus(3) == "MODE:0");
+        testResult("Legacy alarm rejects unsupported zones",
+                   legacy.setAlarm(0, 1) == -1 && legacy.setAlarm(9, 1) == -1 &&
+                       legacy.clearAlarm(9) == -1);
     }
     catch (const exception &e)
     {
@@ -256,8 +426,30 @@ void runStaticTests()
     testFactory();
     testOperationsDesk();
     testAdaptor();
+    testRegistry();
 
     cout << "\n=== Static tests complete ===\n";
+}
+
+void testRegistry()
+{
+    cout << "\n=== Static Test: Incident Registry ===\n";
+
+    IncidentRegistry registry;
+    testResult("Empty registry lookup returns null",
+               registry.find("inc-001") == nullptr);
+    registry.printIncidents();
+    testResult("Registry rejects severity below and above range",
+               registry.createIncident("Nowhere", "Bad low", "medical", 0, nullptr) == nullptr &&
+                   registry.createIncident("Nowhere", "Bad high", "medical", 5, nullptr) == nullptr);
+
+    Incident *first = registry.createIncident("Library", "Smoke", "fire", 4, nullptr);
+    Incident *second = registry.createIncident("Clinic", "Injury", "medical", 2, nullptr);
+    testResult("Registry creates sequential incidents and finds them",
+               first != nullptr && second != nullptr &&
+                   first->getId() == "inc-001" && second->getId() == "inc-002" &&
+                   registry.find("inc-001") == first && registry.find("unknown") == nullptr);
+    registry.printIncidents();
 }
 
 // -----------------------------------------------------------
@@ -541,6 +733,8 @@ void runFreeMode(OperationsDesk &desk)
 
 int main(int argc, char *argv[])
 {
+    runStaticTests();
+    /*
     // Useful for coverage/static testing without entering the interactive menu.
     if (argc > 1 && string(argv[1]) == "--tests")
     {
@@ -597,4 +791,5 @@ int main(int argc, char *argv[])
             cout << "Unknown option.\n";
         }
     }
+    */
 }

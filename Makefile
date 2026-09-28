@@ -33,6 +33,6 @@ valgrind:
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(TARGET)
 
 zip:
-	zip -r taskforge.zip . -x "*.o" "*.gcda" "*.gcno" "*.gcov" "taskforge" "coverage.html"
+	zip -r campusguard.zip . 
 
 .PHONY: all clean cleandoc coverage valgrind zip
