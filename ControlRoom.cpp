@@ -83,6 +83,11 @@ void ControlRoom::createUnit(
         return;
     }
 
+    if (findUnit(id) != nullptr)
+    {
+        throw invalid_argument("Duplicate unit ID: " + id);
+    }
+
     auto &factory = it->second;
 
     unique_ptr<ResponseUnit> unit =

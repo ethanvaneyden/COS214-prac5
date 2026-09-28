@@ -134,12 +134,19 @@ void testState()
         dispatched.cancel();
         testResult("Dispatched -> Cancelled",
                    dispatched.getStateName() == "Cancelled");
-        dispatched.setState(nullptr);
-        testResult("Missing state reports Unknown and rejects transitions",
-                   dispatched.getStateName() == "Unknown" &&
-                       throwsException([&dispatched]() { dispatched.escalate(); }) &&
-                       throwsException([&dispatched]() { dispatched.resolve(); }) &&
-                       throwsException([&dispatched]() { dispatched.cancel(); }));
+
+        bool nullStateRejected = false;
+        try
+        {
+            dispatched.setState(nullptr);
+        }
+        catch (const exception &)
+        {
+            nullStateRejected = true;
+        }
+
+        testResult("Null state assignment is rejected",
+                   nullStateRejected);
     }
     catch (const exception &e)
     {
@@ -173,6 +180,18 @@ void testControlRoom()
         room.createUnit("medical", "MED-T1");
         room.createUnit("maintenance", "MNT-T1");
         room.createUnit("comms", "COM-T1");
+
+        bool duplicateRejected = false;
+        try
+        {
+            room.createUnit("security", "SEC-T1");
+        }
+        catch (const exception &)
+        {
+            duplicateRejected = true;
+        }
+        testResult("Duplicate unit IDs are rejected",
+                   duplicateRejected);
 
         testResult("Security unit registered",
                    room.findUnit("SEC-T1") != nullptr);

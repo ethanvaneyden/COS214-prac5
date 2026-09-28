@@ -61,3 +61,4 @@ coverage/
 # ---- Compiled object dirs some Makefiles use ----
 src/**/*.o
 src/**/*.d
+campuseguard.zip
